@@ -1,6 +1,6 @@
 {
     "NOTE":  "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-    "version":  "1.0.0",
+    "version":  "1.1.0",
     "patches":  [
                     {
                         "name":  "CHAT SIZE",
@@ -160,6 +160,40 @@
                                                                                                 "ARMEABI_V7A":  208,
                                                                                                 "X86_64":  208,
                                                                                                 "X86":  208
+                                                                                            },
+                                                                           "isExperimental":  false,
+                                                                           "minSdk":  null,
+                                                                           "description":  null
+                                                                       }
+                                                                   ]
+                                                   }
+                                               ],
+                        "options":  [
+
+                                    ]
+                    },
+                    {
+                        "name":  "AD BLOCK",
+                        "description":  "Skips Twitch ads by filtering stitched ad segments from the HLS stream and switching to the same broadcast from an ad-free player type. One toggle in SEYTTINGS. Requires the SEYTTINGS patch.",
+                        "default":  true,
+                        "category":  null,
+                        "compatiblePackages":  [
+                                                   {
+                                                       "packageName":  "tv.twitch.android.app",
+                                                       "name":  "Twitch (Android TV)",
+                                                       "description":  "Patched tweaks by Sey for Twitch (Android TV).",
+                                                       "apkFileType":  "APKM",
+                                                       "appIconColor":  "#9146FF",
+                                                       "signatures":  null,
+                                                       "formFactor":  "TV",
+                                                       "targets":  [
+                                                                       {
+                                                                           "version":  "13.0.0.2",
+                                                                           "versionCodes":  {
+                                                                                                "ARM64_V8A":  1100000018,
+                                                                                                "ARMEABI_V7A":  1100000018,
+                                                                                                "X86_64":  1100000018,
+                                                                                                "X86":  1100000018
                                                                                             },
                                                                            "isExperimental":  false,
                                                                            "minSdk":  null,

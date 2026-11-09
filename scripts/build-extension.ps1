@@ -11,6 +11,11 @@
 #   extension\dex\twitch-seyttings\classes.dex  - base SEYTTINGS module
 #   extension\dex\twitch-emotes\classes.dex     - EMOTES feature module
 #   extension\dex\twitch-expandchat\classes.dex - EXPAND CHAT feature module
+#   extension\dex\twitch-adblock\classes.dex    - AD BLOCK feature module
+#
+# The AD BLOCK script lives in extension\js\twitch-adblock.js. This script turns
+# it into AdBlockScript.java (a String array) before compiling, so the Java
+# source stays readable and the DEX carries the script.
 [CmdletBinding()]
 param()
 
@@ -31,18 +36,66 @@ if (-not (Test-Path $d8)) {
 $srcRoot = Join-Path $script:RepoRoot 'extension\src'
 $classesRoot = Join-Path $script:RepoRoot 'extension\classes'
 $dexRoot = Join-Path $script:RepoRoot 'extension\dex'
+$generatedRoot = Join-Path $script:RepoRoot 'extension\generated'
 
-Remove-Item $classesRoot, $dexRoot -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item $classesRoot, $dexRoot, $generatedRoot -Recurse -Force -ErrorAction SilentlyContinue
 
-function Get-Sources([string]$directory, [string]$label) {
-    if (-not (Test-Path $directory)) {
-        throw "$label source directory not found: $directory"
+function Get-Sources([string[]]$directories, [string]$label) {
+    $files = @()
+    foreach ($directory in $directories) {
+        if (-not (Test-Path $directory)) {
+            throw "$label source directory not found: $directory"
+        }
+        $files += Get-ChildItem $directory -Recurse -Filter '*.java' | ForEach-Object { $_.FullName }
     }
-    $files = Get-ChildItem $directory -Filter '*.java' | ForEach-Object { $_.FullName }
     if (-not $files) {
-        throw "No $label Java sources found in $directory."
+        throw "No $label Java sources found in $($directories -join ', ')."
     }
     return $files
+}
+
+# Turns the readable JavaScript into a Java String array. Each line becomes one
+# literal, so no class file hits the 64 KB constant limit.
+function New-JsSource {
+    param(
+        [string]$JsPath,
+        [string]$OutDir,
+        [string]$Package,
+        [string]$ClassName
+    )
+
+    if (-not (Test-Path $JsPath)) {
+        throw "JavaScript source not found: $JsPath"
+    }
+
+    $lines = [System.IO.File]::ReadAllLines($JsPath, [System.Text.Encoding]::UTF8)
+    $sb = New-Object System.Text.StringBuilder
+    [void]$sb.AppendLine("package $Package;")
+    [void]$sb.AppendLine()
+    [void]$sb.AppendLine('/** Generated from extension/js/' + (Split-Path $JsPath -Leaf) + ' by build-extension.ps1. Do not edit. */')
+    [void]$sb.AppendLine("final class $ClassName {")
+    [void]$sb.AppendLine('    private static final String[] LINES = {')
+    foreach ($line in $lines) {
+        $escaped = $line.Replace('\', '\\').Replace('"', '\"').Replace("`t", '\t')
+        [void]$sb.AppendLine('        "' + $escaped + '",')
+    }
+    [void]$sb.AppendLine('    };')
+    [void]$sb.AppendLine()
+    [void]$sb.AppendLine("    private $ClassName() {")
+    [void]$sb.AppendLine('    }')
+    [void]$sb.AppendLine()
+    [void]$sb.AppendLine('    static String get() {')
+    [void]$sb.AppendLine('        return String.join("\n", LINES);')
+    [void]$sb.AppendLine('    }')
+    [void]$sb.AppendLine('}')
+
+    $packageDir = Join-Path $OutDir ($Package -replace '\.', '\')
+    New-Item $packageDir -ItemType Directory -Force | Out-Null
+    $outFile = Join-Path $packageDir ($ClassName + '.java')
+    $utf8 = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($outFile, $sb.ToString(), $utf8)
+    Write-Host "$ClassName generated from $JsPath ($($lines.Count) lines)"
+    return $outFile
 }
 
 function New-Dex([string]$outDir, [string[]]$classFiles, [string]$classpath, [string]$label) {
@@ -68,7 +121,7 @@ function New-Dex([string]$outDir, [string[]]$classFiles, [string]$classpath, [st
 function Build-Module {
     param(
         [string]$Label,
-        [string]$SourceDir,
+        [string[]]$SourceDir,
         [string]$ClassesDir,
         [string]$DexDir,
         [string]$BaseClasses
@@ -100,6 +153,16 @@ $kickChatExpandSrc = Join-Path $srcRoot 'app\morphe\extension\kicktv\chatexpand'
 $twitchBaseSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\base'
 $twitchEmoteSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\emotes'
 $twitchExpandChatSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\expandchat'
+$twitchAdBlockSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\adblock'
+
+$adBlockScript = New-JsSource `
+    -JsPath (Join-Path $script:RepoRoot 'extension\js\twitch-adblock.js') `
+    -OutDir $generatedRoot `
+    -Package 'app.morphe.extension.twitch.adblock' `
+    -ClassName 'AdBlockScript'
+if (-not (Test-Path $adBlockScript)) {
+    throw "Failed to generate $adBlockScript."
+}
 
 $kickBaseClasses = Join-Path $classesRoot 'kick-base'
 $twitchBaseClasses = Join-Path $classesRoot 'twitch-base'
@@ -133,3 +196,7 @@ Build-Module -Label 'Twitch emotes' -SourceDir $twitchEmoteSrc `
 Build-Module -Label 'Twitch expand chat' -SourceDir $twitchExpandChatSrc `
     -ClassesDir (Join-Path $classesRoot 'twitch-expandchat') `
     -DexDir (Join-Path $dexRoot 'twitch-expandchat') -BaseClasses $twitchBaseClasses
+
+Build-Module -Label 'Twitch ad block' -SourceDir @($twitchAdBlockSrc, $generatedRoot) `
+    -ClassesDir (Join-Path $classesRoot 'twitch-adblock') `
+    -DexDir (Join-Path $dexRoot 'twitch-adblock') -BaseClasses $twitchBaseClasses

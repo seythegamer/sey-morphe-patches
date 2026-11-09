@@ -8,7 +8,7 @@
 # (Morphe Manager on Android), plus one extension DEX per feature.
 [CmdletBinding()]
 param(
-    [string]$Version = '1.0.0'
+    [string]$Version = '1.1.0'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -74,7 +74,8 @@ $extensions = @(
     @{ Name = 'extensions/KickChatExpand.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\kick-chatexpand\classes.dex') },
     @{ Name = 'extensions/TwitchSeyttings.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-seyttings\classes.dex') },
     @{ Name = 'extensions/TwitchEmotes.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-emotes\classes.dex') },
-    @{ Name = 'extensions/TwitchExpandChat.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-expandchat\classes.dex') }
+    @{ Name = 'extensions/TwitchExpandChat.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-expandchat\classes.dex') },
+    @{ Name = 'extensions/TwitchAdBlock.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-adblock\classes.dex') }
 )
 foreach ($extension in $extensions) {
     if (-not (Test-Path $extension.Source)) {
@@ -96,7 +97,7 @@ $timestamp = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
 $manifest = @"
 Manifest-Version: 1.0
 Name: Sey Morphe Patches
-Description: Morphe patches for KICK (Android TV) and Twitch (Android TV) - Sey (SEYTTINGS, EMOTES, CHAT SIZE, CHAT TEXT SIZE and EXPAND CHAT)
+Description: Morphe patches for KICK (Android TV) and Twitch (Android TV) - Sey (SEYTTINGS, EMOTES, CHAT SIZE, CHAT TEXT SIZE, EXPAND CHAT and AD BLOCK)
 Version: $Version
 Timestamp: $timestamp
 Source: https://github.com/seythegamer/sey-morphe-patches

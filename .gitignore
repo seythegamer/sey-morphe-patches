@@ -3,6 +3,7 @@
 /dist/
 /extension/classes/
 /extension/dex/
+/extension/generated/
 /patch-classes/
 /patch-dex/
 /mpp-stage/

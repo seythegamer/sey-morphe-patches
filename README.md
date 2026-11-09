@@ -35,8 +35,34 @@ instead of replacing native Compose screens.
 | Patch | Type | What it does |
 | --- | --- | --- |
 | **SEYTTINGS** | base | Turns the web Settings row into a red **SEYTTINGS** row that opens a native patched-tweaks dialog. Required by every Twitch feature. |
+| **AD BLOCK** | feature | Skips Twitch ads on live streams. During a break it switches to the same broadcast from an ad-free player type, so the stream keeps playing. One toggle in SEYTTINGS. |
 | **EMOTES** | feature | Shows 7TV, BTTV and FFZ emotes in the Twitch TV chat. One shared toggle in SEYTTINGS enables all providers. |
 | **EXPAND CHAT** | feature | Hides the **Join the conversation** footer button and lets the chat fill the full panel height. One toggle in SEYTTINGS. |
+
+### Ad blocking on Twitch TV
+
+Twitch TV does not play ads as separate videos. The ads are stitched into the
+HLS media playlists that hls.js loads inside the WebView, so the only place to
+remove them is the playlist itself. **AD BLOCK** works there:
+
+- it hooks the playlist loaders and drops the marked ad segments
+  (`stitched-ad`, `EXT-X-CUE-OUT`, `twitch-stitched`, `twitch-maf-ad` and the
+  known ad segment URLs),
+- while a break is running it requests the same broadcast with another
+  `player_type` (embed, popout, site, ...), which usually comes without ads, and
+  splices those segments in at the matching program date-time,
+- without a clean backup stream the player waits on the last live frame instead
+  of showing the ad, then rejoins the stream when the break ends.
+
+Everything happens in the page, so the feature is just a JavaScript file and one
+switch. The toggle is on by default and applies on the next playlist refresh;
+turning it off makes Twitch play ads normally again.
+
+The filter is adapted from
+[CeladonTV](https://github.com/kenhendricks00/CeladonTV) (MIT, © 2026 Kenneth
+Hendricks), which in turn credits
+[TwitchAdSolutions](https://github.com/pixeltris/TwitchAdSolutions) (MIT). See
+[Third-party notices](#third-party-notices).
 
 ## One bundle, two apps
 
@@ -49,7 +75,7 @@ A Morphe bundle can carry patches for several packages. This repository keeps:
 - one `patches-list.json` with a `compatiblePackages` entry per app.
 
 Morphe Manager groups the entries by package, so after selecting a KICK APK you
-see the five KICK patches, and after selecting a Twitch APK you see the three
+see the five KICK patches, and after selecting a Twitch APK you see the four
 Twitch patches. Dependency resolution keeps **SEYTTINGS** selected whenever a
 feature patch needs it.
 
@@ -85,7 +111,7 @@ Morphe Manager reads `patches-list.json` for the patch list and
 `patches-bundle.json` for the bundle download URL. Do not paste a direct `.mpp`
 link.
 
-You can also import `SeyMorphe-1.0.0.mpp` manually as a local source.
+You can also import `SeyMorphe-1.1.0.mpp` manually as a local source.
 
 ## How to use
 
@@ -119,7 +145,7 @@ Build the extension DEX files and the combined bundle:
 powershell -ExecutionPolicy Bypass -File scripts\build-patch.ps1
 ```
 
-Output: `dist\SeyMorphe-1.0.0.mpp`.
+Output: `dist\SeyMorphe-1.1.0.mpp`.
 
 Optional APK builders use the same bundle and apply the patches to an original
 APKM:
@@ -154,8 +180,11 @@ patches/src/main/kotlin/app/morphe/patches/
   kicktv/chatexpand/                KICK EXPAND CHAT patch
   twitch/Target.kt                  Twitch compatibility (package, version, purple tile)
   twitch/settings/                  Twitch SEYTTINGS base patch
+  twitch/adblock/                   Twitch AD BLOCK patch
   twitch/emotes/                    Twitch EMOTES patch
   twitch/expandchat/                Twitch EXPAND CHAT patch
+extension/js/
+  twitch-adblock.js                 readable source of the injected HLS ad filter
 extension/src/app/morphe/extension/
   kicktv/base/                      KICK red themed dialog, bridge and injector
   kicktv/emotes/                    KICK emote renderer and provider store
@@ -163,13 +192,14 @@ extension/src/app/morphe/extension/
   kicktv/chattext/                  KICK chat text size helpers
   kicktv/chatexpand/                KICK footer helper
   twitch/base/                      Twitch red themed dialog, bridge and injector
+  twitch/adblock/                   Twitch AD BLOCK injector, preference and section
   twitch/emotes/                    Twitch emote renderer and provider store
   twitch/expandchat/                Twitch footer helper
 scripts/                            build and release scripts
 patches-list.json                   remote patch metadata (repository root)
 patches-bundle.json                 remote bundle manifest (repository root)
 patches-bundle.png                  source icon shown by Morphe Manager
-SeyMorphe-1.0.0.mpp                 published bundle (repository root)
+SeyMorphe-1.1.0.mpp                 published bundle (repository root)
 assets/                             README illustrations
 LICENSE                            GNU General Public License v3.0
 README.md                          this documentation
@@ -185,13 +215,42 @@ README.md                          this documentation
 - Runtime behaviour was verified on a real Android TV box (Android 11): KICK
   chat size presets, 7TV/BTTV/FFZ global sets, channel 7TV emotes and Twitch
   footer hiding were confirmed live.
+- **AD BLOCK** was verified on the same box: the loader hooks install in the
+  Twitch TV WebView, read the live HLS playlists, and the SEYTTINGS toggle
+  stops and starts the filter immediately and survives an app restart. The
+  filtering itself was checked against a stitched-ad test playlist: ad segments
+  are removed, the live segments are kept and the media sequence is renumbered
+  (with the toggle off the playlist passes through unchanged). This test
+  session was logged out and Twitch served no ad break in the observation
+  window, so the backup-stream switch was not seen live here.
 - 7TV channel emotes are resolved through the KICK user id. BTTV and FFZ only
   provide global emote sets for KICK, so channel-specific BTTV/FFZ emotes are
   not available there.
 - The Twitch helper survives client-side navigation because it is re-applied on
   every page load and React re-render.
+- **AD BLOCK** removes the ads Twitch stitches into the live HLS playlists. Ad
+  detection and the backup stream depend on Twitch keeping the markers and the
+  `player_type` parameter, so a future server change may need a new script.
+  When no ad-free player type is available the player pauses on the last live
+  frame for the length of the break instead of showing the ad.
 - Emote sets are public data: no Twitch or KICK login is required for the emote
   providers.
+
+## Third-party notices
+
+The Twitch **AD BLOCK** script (`extension/js/twitch-adblock.js`) is adapted
+from:
+
+- **CeladonTV** - `starshot-hls-adblock.js`
+  <https://github.com/kenhendricks00/CeladonTV>
+  MIT License, Copyright (c) 2026 Kenneth Hendricks
+- **TwitchAdSolutions** (credited by CeladonTV)
+  <https://github.com/pixeltris/TwitchAdSolutions>
+  MIT License, Copyright (c) pixeltris
+
+The adapted file keeps its attribution header, is distributed here under the
+GNU GPL v3, and the original MIT terms continue to apply to the parts taken
+from those projects.
 
 ## License
 

@@ -12,7 +12,7 @@
 # The version must match patches-bundle.json and the bundle manifest.
 [CmdletBinding()]
 param(
-    [string]$Version = '1.0.0'
+    [string]$Version = '1.1.0'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -120,6 +120,17 @@ $patches = @(
         default            = $true
         category           = $null
         compatiblePackages = @($kickTv)
+        options            = @()
+    },
+    [ordered]@{
+        name               = 'AD BLOCK'
+        description        = 'Skips Twitch ads by filtering stitched ad segments from the ' +
+                             'HLS stream and switching to the same broadcast from an ' +
+                             'ad-free player type. One toggle in SEYTTINGS. Requires the ' +
+                             'SEYTTINGS patch.'
+        default            = $true
+        category           = $null
+        compatiblePackages = @($twitchTv)
         options            = @()
     },
     [ordered]@{

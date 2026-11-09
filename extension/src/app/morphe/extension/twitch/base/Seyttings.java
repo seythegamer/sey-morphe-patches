@@ -30,6 +30,7 @@ public final class Seyttings {
      * feature patch is applied, because each feature bundles its own DEX.
      */
     private static final String[] SECTION_CLASSES = {
+            "app.morphe.extension.twitch.adblock.AdBlockSection",
             "app.morphe.extension.twitch.emotes.EmoteSection",
             "app.morphe.extension.twitch.expandchat.ExpandChatSection",
     };

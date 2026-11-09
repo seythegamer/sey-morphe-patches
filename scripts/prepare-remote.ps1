@@ -7,7 +7,7 @@ param(
 
     [string]$Branch = 'main',
 
-    [string]$Version = '1.0.0'
+    [string]$Version = '1.1.0'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -35,7 +35,7 @@ Copy-Item $patchList (Join-Path $remoteDir 'patches-list.json') -Force
 $manifest = [ordered]@{
     created_at   = (Get-Date -Format 'yyyy-MM-ddTHH:mm:ss')
     description  = 'Sey Morphe Patches: KICK (Android TV) + Twitch (Android TV) - ' +
-                   'SEYTTINGS, EMOTES, CHAT SIZE, CHAT TEXT SIZE and EXPAND CHAT'
+                   'SEYTTINGS, EMOTES, CHAT SIZE, CHAT TEXT SIZE, EXPAND CHAT and AD BLOCK'
     download_url = "$rawBase/$mppName"
     version      = $Version
     page_url     = $repoUrl
@@ -71,7 +71,7 @@ One bundle patches two apps. After selecting the KICK or Twitch APK, Morphe
 Manager shows only the patches that belong to that app:
 
   KICK:   SEYTTINGS, EMOTES, CHAT SIZE, CHAT TEXT SIZE, EXPAND CHAT
-  Twitch: SEYTTINGS, EMOTES, EXPAND CHAT
+  Twitch: SEYTTINGS, AD BLOCK, EMOTES, EXPAND CHAT
 
 Morphe Manager lists the patches from patches-list.json and downloads the
 .mpp from the download_url inside patches-bundle.json. Do not paste a .mpp
