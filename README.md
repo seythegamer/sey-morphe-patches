@@ -237,12 +237,29 @@ token is read from `git credential fill` and is never printed.
 
 3. Commit and push `CHANGELOG.md` together with `patches-bundle.json`,
    `patches-list.json`, the new `.mpp` and the README.
-4. Verify that
-   `https://raw.githubusercontent.com/<owner>/<repo>/main/CHANGELOG.md` returns
-   200 and that the new version heading is visible in Morphe Manager.
+4. Create or update the GitHub release so the Patches screen shows the same
+   notes next to the download:
 
-`prepare-remote.ps1` copies `CHANGELOG.md` into `remote/`, and
-`publish-remote.ps1` uploads it next to the manifest and the bundle.
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File scripts\publish-release.ps1 `
+       -Owner seythegamer -Repo sey-morphe-patches -Version 1.2.3
+   ```
+
+   The script reads the `## <version> (YYYY-MM-DD)` section from `CHANGELOG.md`
+   as UTF-8, uses it as the release body, creates tag `v<version>` and replaces
+   the `SeyMorphe-<version>.mpp` asset.
+5. Verify that
+   `https://raw.githubusercontent.com/<owner>/<repo>/main/CHANGELOG.md` returns
+   200 and that the new version heading is visible in Morphe Manager. Use the
+   repository source for this: Morphe Manager fetches `CHANGELOG.md` from
+   `<repo>/main/CHANGELOG.md`, while the raw `patches-bundle.json` source has no
+   changelog.
+
+`prepare-remote.ps1` copies `CHANGELOG.md` into `remote/`,
+`publish-remote.ps1` uploads it next to the manifest and the bundle, and
+`publish-release.ps1` fills the GitHub release body with the version section.
+The manifest stays authoritative for update checks (`fetchLatestFromManifest`
+runs first); the release provides the notes and a fallback download.
 
 `tools/`, `dist/`, `remote/`, build output, the original APKMs and signing
 keystores are ignored by Git, so they are not part of the published source tree.
