@@ -2,7 +2,7 @@ param(
     [Parameter(Mandatory = $true)][string]$Owner,
     [Parameter(Mandatory = $true)][string]$Repo,
     [string]$Branch = 'main',
-    [string]$Version = '1.2.1'
+    [string]$Version = '1.2.2'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -34,6 +34,7 @@ $files = @(
     @{ Path = 'patches-bundle.json'; Source = Join-Path $remoteDir 'patches-bundle.json'; Message = "Update bundle manifest to $Version" },
     @{ Path = "SeyMorphe-$Version.mpp"; Source = Join-Path $remoteDir "SeyMorphe-$Version.mpp"; Message = "Add $Version patch bundle" },
     @{ Path = 'patches-bundle.png'; Source = Join-Path $remoteDir 'patches-bundle.png'; Message = 'Add bundle icon' },
+    @{ Path = 'CHANGELOG.md'; Source = Join-Path $PSScriptRoot '..\CHANGELOG.md'; Message = "Document $Version changes" },
     @{ Path = 'README.md'; Source = Join-Path $PSScriptRoot '..\README.md'; Message = 'Document Sey Morphe patches and source' }
 )
 

@@ -131,7 +131,12 @@ Morphe Manager reads `patches-list.json` for the patch list and
 `patches-bundle.json` for the bundle download URL. Do not paste a direct `.mpp`
 link.
 
-You can also import `SeyMorphe-1.2.0.mpp` manually as a local source.
+Use the **repository** URL if you want the in-app changelog: Morphe Manager
+fetches `CHANGELOG.md` from the repository root. The raw
+`patches-bundle.json` URL works for patching and updates, but it does not carry
+release notes.
+
+You can also import `SeyMorphe-1.2.2.mpp` manually as a local source.
 
 ## How to use
 
@@ -146,6 +151,38 @@ You can also import `SeyMorphe-1.2.0.mpp` manually as a local source.
 
 The patched APK is signed with a different key than the store build, so
 uninstall the original first. That removes the app's local data.
+
+## Changelog
+
+`CHANGELOG.md` in the repository root is the release-notes source for Morphe
+Manager. After an update the app compares the installed bundle version with the
+newest version in the file and shows every entry in between.
+
+Morphe parses the file with these rules, so keep the format:
+
+- one version heading per release, newest first: `## 1.2.2 (2026-11-09)` (the
+  date is required),
+- section headings such as `### ✨ New Features`, `### 🐛 Bug Fixes`,
+  `### ⚡ Performance` or `### 📝 Other`,
+- one bullet per change, with the app name in the scope:
+  `* **Twitch - AMOLED:** ...` or
+  `* **KICK: Live Streaming - SEYTTINGS:** ...`.
+
+The scope matters: Morphe matches it against the app names from the bundle
+(`Twitch (Android TV)` / `Twitch` and `KICK: Live Streaming` / `Mobile`) to show
+the "changes for your apps" badge. Keep an ASCII hyphen between the app name and
+the feature, as in the examples.
+
+Add a new section at the top before publishing a version:
+
+```markdown
+## 1.2.3 (2026-11-20)
+
+### ✨ New Features
+
+* **Twitch - CHAT SIZE:** Added a chat size preset.
+* **KICK: Live Streaming - CHAT SIZE:** Added a chat size preset.
+```
 
 ## Build from source
 
@@ -166,7 +203,7 @@ Build the extension DEX files and the combined bundle:
 powershell -ExecutionPolicy Bypass -File scripts\build-patch.ps1
 ```
 
-Output: `dist\SeyMorphe-1.2.0.mpp`.
+Output: `dist\SeyMorphe-1.2.2.mpp`.
 
 Optional APK builders use the same bundle and apply the patches to an original
 APKM:
@@ -185,6 +222,27 @@ powershell -ExecutionPolicy Bypass -File scripts\prepare-remote.ps1 `
 
 `scripts\publish-remote.ps1` can upload them through the GitHub REST API; the
 token is read from `git credential fill` and is never printed.
+
+### Release checklist
+
+1. Add a new `## <version> (YYYY-MM-DD)` section to `CHANGELOG.md` (newest
+   first) and describe the changes with app-scoped bullets.
+2. Build the bundle and pass the same version everywhere:
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File scripts\build-patch.ps1 -Version 1.2.3
+   powershell -ExecutionPolicy Bypass -File scripts\prepare-remote.ps1 `
+       -Owner seythegamer -Repo sey-morphe-patches -Version 1.2.3
+   ```
+
+3. Commit and push `CHANGELOG.md` together with `patches-bundle.json`,
+   `patches-list.json`, the new `.mpp` and the README.
+4. Verify that
+   `https://raw.githubusercontent.com/<owner>/<repo>/main/CHANGELOG.md` returns
+   200 and that the new version heading is visible in Morphe Manager.
+
+`prepare-remote.ps1` copies `CHANGELOG.md` into `remote/`, and
+`publish-remote.ps1` uploads it next to the manifest and the bundle.
 
 `tools/`, `dist/`, `remote/`, build output, the original APKMs and signing
 keystores are ignored by Git, so they are not part of the published source tree.
@@ -223,7 +281,8 @@ scripts/                            build and release scripts
 patches-list.json                   remote patch metadata (repository root)
 patches-bundle.json                 remote bundle manifest (repository root)
 patches-bundle.png                  source icon shown by Morphe Manager
-SeyMorphe-1.2.0.mpp                 published bundle (repository root)
+CHANGELOG.md                        release notes read by Morphe Manager
+SeyMorphe-1.2.2.mpp                 published bundle (repository root)
 assets/                             README illustrations
 LICENSE                            GNU General Public License v3.0
 README.md                          this documentation
