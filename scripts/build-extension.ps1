@@ -12,10 +12,11 @@
 #   extension\dex\twitch-emotes\classes.dex     - EMOTES feature module
 #   extension\dex\twitch-expandchat\classes.dex - EXPAND CHAT feature module
 #   extension\dex\twitch-adblock\classes.dex    - AD BLOCK feature module
+#   extension\dex\twitch-amoled\classes.dex     - AMOLED feature module
 #
-# The AD BLOCK script lives in extension\js\twitch-adblock.js. This script turns
-# it into AdBlockScript.java (a String array) before compiling, so the Java
-# source stays readable and the DEX carries the script.
+# The AD BLOCK and AMOLED scripts live in extension\js. This script turns them
+# into AdBlockScript.java and AmoledScript.java (String arrays) before
+# compiling, so the Java sources stay readable and the DEX carries the script.
 [CmdletBinding()]
 param()
 
@@ -154,14 +155,27 @@ $twitchBaseSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\base'
 $twitchEmoteSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\emotes'
 $twitchExpandChatSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\expandchat'
 $twitchAdBlockSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\adblock'
+$twitchAmoledSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\amoled'
+
+$adBlockGeneratedRoot = Join-Path $generatedRoot 'adblock'
+$amoledGeneratedRoot = Join-Path $generatedRoot 'amoled'
 
 $adBlockScript = New-JsSource `
     -JsPath (Join-Path $script:RepoRoot 'extension\js\twitch-adblock.js') `
-    -OutDir $generatedRoot `
+    -OutDir $adBlockGeneratedRoot `
     -Package 'app.morphe.extension.twitch.adblock' `
     -ClassName 'AdBlockScript'
 if (-not (Test-Path $adBlockScript)) {
     throw "Failed to generate $adBlockScript."
+}
+
+$amoledScript = New-JsSource `
+    -JsPath (Join-Path $script:RepoRoot 'extension\js\twitch-amoled.js') `
+    -OutDir $amoledGeneratedRoot `
+    -Package 'app.morphe.extension.twitch.amoled' `
+    -ClassName 'AmoledScript'
+if (-not (Test-Path $amoledScript)) {
+    throw "Failed to generate $amoledScript."
 }
 
 $kickBaseClasses = Join-Path $classesRoot 'kick-base'
@@ -197,6 +211,10 @@ Build-Module -Label 'Twitch expand chat' -SourceDir $twitchExpandChatSrc `
     -ClassesDir (Join-Path $classesRoot 'twitch-expandchat') `
     -DexDir (Join-Path $dexRoot 'twitch-expandchat') -BaseClasses $twitchBaseClasses
 
-Build-Module -Label 'Twitch ad block' -SourceDir @($twitchAdBlockSrc, $generatedRoot) `
+Build-Module -Label 'Twitch ad block' -SourceDir @($twitchAdBlockSrc, $adBlockGeneratedRoot) `
     -ClassesDir (Join-Path $classesRoot 'twitch-adblock') `
     -DexDir (Join-Path $dexRoot 'twitch-adblock') -BaseClasses $twitchBaseClasses
+
+Build-Module -Label 'Twitch amoled' -SourceDir @($twitchAmoledSrc, $amoledGeneratedRoot) `
+    -ClassesDir (Join-Path $classesRoot 'twitch-amoled') `
+    -DexDir (Join-Path $dexRoot 'twitch-amoled') -BaseClasses $twitchBaseClasses

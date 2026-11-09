@@ -12,7 +12,7 @@
 # The version must match patches-bundle.json and the bundle manifest.
 [CmdletBinding()]
 param(
-    [string]$Version = '1.1.0'
+    [string]$Version = '1.2.0'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -120,6 +120,16 @@ $patches = @(
         default            = $true
         category           = $null
         compatiblePackages = @($kickTv)
+        options            = @()
+    },
+    [ordered]@{
+        name               = 'AMOLED'
+        description        = 'Pure black theme for the Twitch TV chat and the bars above ' +
+                             'and below the video. Replaces the dark greys with #000000. ' +
+                             'One toggle in SEYTTINGS. Requires the SEYTTINGS patch.'
+        default            = $true
+        category           = $null
+        compatiblePackages = @($twitchTv)
         options            = @()
     },
     [ordered]@{

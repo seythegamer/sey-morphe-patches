@@ -35,9 +35,29 @@ instead of replacing native Compose screens.
 | Patch | Type | What it does |
 | --- | --- | --- |
 | **SEYTTINGS** | base | Turns the web Settings row into a red **SEYTTINGS** row that opens a native patched-tweaks dialog. Required by every Twitch feature. |
+| **AMOLED** | feature | Turns the chat panel and the bars above and below the video pure black (`#000000`). The player, text and badges keep Twitch's colours. One toggle in SEYTTINGS, on by default. |
 | **AD BLOCK** | feature | Skips Twitch ads on live streams. During a break it switches to the same broadcast from an ad-free player type, so the stream keeps playing. One toggle in SEYTTINGS. |
 | **EMOTES** | feature | Shows 7TV, BTTV and FFZ emotes in the Twitch TV chat. One shared toggle in SEYTTINGS enables all providers. |
 | **EXPAND CHAT** | feature | Hides the **Join the conversation** footer button and lets the chat fill the full panel height. One toggle in SEYTTINGS. |
+
+### AMOLED theme on Twitch TV
+
+Twitch paints its TV web UI in two dark greys: `#0e0e10` for the page and the
+letterbox bars above and below the video, and `#18181b` for the chat panel and
+its edge fades. On an OLED/AMOLED screen those greys still light up the panel, so
+**AMOLED** replaces exactly those surfaces with `#000000`:
+
+- the page background, the letterbox bars and the chat panel become pure black,
+- the chat's top and bottom edge fades are repainted black as well (Twitch
+  computes that gradient at runtime, so the script reads the live value and only
+  swaps the grey stop),
+- the player image, the overlay scrim, the text colours and the badges are left
+  untouched, so nothing else changes.
+
+Twitch TV renders everything in a WebView, so the feature is a small injected
+style sheet plus one shared preference. It is applied before the first frame and
+re-applied after client-side navigation and React re-renders. The SEYTTINGS
+switch applies instantly and is remembered across restarts.
 
 ### Ad blocking on Twitch TV
 
@@ -75,7 +95,7 @@ A Morphe bundle can carry patches for several packages. This repository keeps:
 - one `patches-list.json` with a `compatiblePackages` entry per app.
 
 Morphe Manager groups the entries by package, so after selecting a KICK APK you
-see the five KICK patches, and after selecting a Twitch APK you see the four
+see the five KICK patches, and after selecting a Twitch APK you see the five
 Twitch patches. Dependency resolution keeps **SEYTTINGS** selected whenever a
 feature patch needs it.
 
@@ -111,7 +131,7 @@ Morphe Manager reads `patches-list.json` for the patch list and
 `patches-bundle.json` for the bundle download URL. Do not paste a direct `.mpp`
 link.
 
-You can also import `SeyMorphe-1.1.0.mpp` manually as a local source.
+You can also import `SeyMorphe-1.2.0.mpp` manually as a local source.
 
 ## How to use
 
@@ -145,7 +165,7 @@ Build the extension DEX files and the combined bundle:
 powershell -ExecutionPolicy Bypass -File scripts\build-patch.ps1
 ```
 
-Output: `dist\SeyMorphe-1.1.0.mpp`.
+Output: `dist\SeyMorphe-1.2.0.mpp`.
 
 Optional APK builders use the same bundle and apply the patches to an original
 APKM:
@@ -180,11 +200,13 @@ patches/src/main/kotlin/app/morphe/patches/
   kicktv/chatexpand/                KICK EXPAND CHAT patch
   twitch/Target.kt                  Twitch compatibility (package, version, purple tile)
   twitch/settings/                  Twitch SEYTTINGS base patch
+  twitch/amoled/                    Twitch AMOLED patch
   twitch/adblock/                   Twitch AD BLOCK patch
   twitch/emotes/                    Twitch EMOTES patch
   twitch/expandchat/                Twitch EXPAND CHAT patch
 extension/js/
   twitch-adblock.js                 readable source of the injected HLS ad filter
+  twitch-amoled.js                  readable source of the injected black theme
 extension/src/app/morphe/extension/
   kicktv/base/                      KICK red themed dialog, bridge and injector
   kicktv/emotes/                    KICK emote renderer and provider store
@@ -192,6 +214,7 @@ extension/src/app/morphe/extension/
   kicktv/chattext/                  KICK chat text size helpers
   kicktv/chatexpand/                KICK footer helper
   twitch/base/                      Twitch red themed dialog, bridge and injector
+  twitch/amoled/                    Twitch AMOLED injector, preference and section
   twitch/adblock/                   Twitch AD BLOCK injector, preference and section
   twitch/emotes/                    Twitch emote renderer and provider store
   twitch/expandchat/                Twitch footer helper
@@ -199,7 +222,7 @@ scripts/                            build and release scripts
 patches-list.json                   remote patch metadata (repository root)
 patches-bundle.json                 remote bundle manifest (repository root)
 patches-bundle.png                  source icon shown by Morphe Manager
-SeyMorphe-1.1.0.mpp                 published bundle (repository root)
+SeyMorphe-1.2.0.mpp                 published bundle (repository root)
 assets/                             README illustrations
 LICENSE                            GNU General Public License v3.0
 README.md                          this documentation
@@ -223,6 +246,11 @@ README.md                          this documentation
   (with the toggle off the playlist passes through unchanged). This test
   session was logged out and Twitch served no ad break in the observation
   window, so the backup-stream switch was not seen live here.
+- **AMOLED** was verified on the same box: on a live stream the letterbox bars,
+  the page and the chat panel report (and screenshot) `#000000`, the chat edge
+  fades are repainted with the same direction, the SEYTTINGS switch reverts the
+  theme immediately and the choice survives an app restart. The player scrim,
+  text and badges were left as Twitch draws them.
 - 7TV channel emotes are resolved through the KICK user id. BTTV and FFZ only
   provide global emote sets for KICK, so channel-specific BTTV/FFZ emotes are
   not available there.
