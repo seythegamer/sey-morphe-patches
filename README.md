@@ -1,0 +1,213 @@
+# Sey Morphe patches
+
+One Morphe bundle for **two Android TV apps**:
+
+| App | Package | Supported version | Morphe tile colour |
+| --- | --- | --- | --- |
+| **KICK: Live Streaming** | `com.kick.mobile` | `1.9.0` (versionCode `208`) | green `#53FC18` |
+| **Twitch (Android TV)** | `tv.twitch.android.app` | `13.0.0.2` (versionCode `1100000018`) | purple `#9146FF` |
+
+The bundle is shown in Morphe Manager as **Sey Morphe Patches**. Add one source,
+open either app, and Morphe Manager lists only the patches that belong to that
+app. Every feature is a separate entry, and **SEYTTINGS** is the base dependency
+for the feature patches of both apps.
+
+**Source code:** <https://github.com/seythegamer/sey-morphe-patches>
+**License:** GPLv3 (see [LICENSE](LICENSE))
+
+## Patches
+
+### KICK (Android TV)
+
+| Patch | Type | What it does |
+| --- | --- | --- |
+| **SEYTTINGS** | base | Turns the licensing row in the KICK settings screen into a red **SEYTTINGS** row that opens a native patched-tweaks dialog. Required by every KICK feature. |
+| **EMOTES** | feature | Shows 7TV, BTTV and FFZ emotes in the KICK chat. One shared toggle in SEYTTINGS enables all providers. |
+| **CHAT SIZE** | feature | Resizes the chat in the VIDEO/CHAT view: default (100%), 125%, 90%, 85% and 80%. The video and chat panel always meet at the same edge. |
+| **CHAT TEXT SIZE** | feature | Renders chat text larger, Twitch-style: 16 sp (default), 15 sp, 13 sp or stock 11 sp. Choose the size in SEYTTINGS. |
+| **EXPAND CHAT** | feature | Hides the **Join the Chat** footer in the VIDEO/CHAT view and lets the chat fill the freed space. Toggle in SEYTTINGS. |
+
+### Twitch (Android TV)
+
+Twitch TV is a WebView app, so these patches operate on the remote Next.js UI
+instead of replacing native Compose screens.
+
+| Patch | Type | What it does |
+| --- | --- | --- |
+| **SEYTTINGS** | base | Turns the web Settings row into a red **SEYTTINGS** row that opens a native patched-tweaks dialog. Required by every Twitch feature. |
+| **EMOTES** | feature | Shows 7TV, BTTV and FFZ emotes in the Twitch TV chat. One shared toggle in SEYTTINGS enables all providers. |
+| **EXPAND CHAT** | feature | Hides the **Join the conversation** footer button and lets the chat fill the full panel height. One toggle in SEYTTINGS. |
+
+## One bundle, two apps
+
+A Morphe bundle can carry patches for several packages. This repository keeps:
+
+- one `classes.dex` built from both `app.morphe.patches.kicktv` and
+  `app.morphe.patches.twitch`,
+- one extension DEX per feature, with app-prefixed entry names so the KICK and
+  Twitch modules never collide,
+- one `patches-list.json` with a `compatiblePackages` entry per app.
+
+Morphe Manager groups the entries by package, so after selecting a KICK APK you
+see the five KICK patches, and after selecting a Twitch APK you see the three
+Twitch patches. Dependency resolution keeps **SEYTTINGS** selected whenever a
+feature patch needs it.
+
+### Icons in Morphe Manager
+
+The repository contains:
+
+- **`patches-bundle.png`** - the source icon shown on the Sources screen. Morphe
+  Manager looks for a PNG named after `patches-bundle.json`, so this file must
+  stay next to that JSON in the repository root (and in the `remote/` staging
+  folder).
+- **per-app tile colours** - the home-screen tile of each app uses the
+  `appIconColor` declared in the bundle. KICK is green and Twitch is purple, so
+  the two apps are easy to tell apart. The SEYTTINGS UI inside both apps keeps
+  its red theme.
+
+The optional images in `assets/` (`kick-icon.png`, `twitch-icon.png`) are only
+illustrations for this README. Morphe Manager derives the app tiles from
+`appIconColor`, not from those files.
+
+## Add the source in Morphe Manager
+
+Add **one** of these under **Sources** -> **+**:
+
+- Repository: `https://github.com/seythegamer/sey-morphe-patches`
+- Manifest: `https://raw.githubusercontent.com/seythegamer/sey-morphe-patches/main/patches-bundle.json`
+
+One-click link:
+
+<https://morphe.software/add-source?github=seythegamer/sey-morphe-patches>
+
+Morphe Manager reads `patches-list.json` for the patch list and
+`patches-bundle.json` for the bundle download URL. Do not paste a direct `.mpp`
+link.
+
+You can also import `SeyMorphe-1.0.0.mpp` manually as a local source.
+
+## How to use
+
+1. Put the original KICK `1.9.0` APKM or Twitch `13.0.0.2` APKM on the device.
+2. Open the app in Morphe Manager and pick the APK/APKM.
+3. Tick the patches you want. Feature patches pull **SEYTTINGS** in
+   automatically.
+4. Patch and install the result.
+5. Open the app's Settings screen and press the red **SEYTTINGS** row to change
+   the tweak options.
+
+The patched APK is signed with a different key than the store build, so
+uninstall the original first. That removes the app's local data.
+
+## Build from source
+
+Requirements:
+
+- **Morphe Desktop / CLI** - put `morphe-desktop.jar` in `tools/`. Download it
+  from the [Morphe releases](https://github.com/MorpheApp/morphe-desktop/releases).
+- **Java 21** - put a JDK in `tools/jdk21/` or add `java` to `PATH`.
+- **Android SDK** with `build-tools` (`d8`, `apksigner`, `zipalign`) and a
+  platform `android.jar`. The scripts look at `ANDROID_HOME`,
+  `ANDROID_SDK_ROOT` or the default Windows SDK location.
+- **Kotlin compiler** - Android Studio ships `kotlinc`; the scripts also accept
+  `kotlinc` from `PATH`.
+
+Build the extension DEX files and the combined bundle:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\build-patch.ps1
+```
+
+Output: `dist\SeyMorphe-1.0.0.mpp`.
+
+Optional APK builders use the same bundle and apply the patches to an original
+APKM:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\build-kick-apk.ps1
+powershell -ExecutionPolicy Bypass -File scripts\build-twitch-apk.ps1
+```
+
+Prepare the files for a GitHub source:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\prepare-remote.ps1 `
+    -Owner seythegamer -Repo sey-morphe-patches
+```
+
+`scripts\publish-remote.ps1` can upload them through the GitHub REST API; the
+token is read from `git credential fill` and is never printed.
+
+`tools/`, `dist/`, `remote/`, build output, the original APKMs and signing
+keystores are ignored by Git, so they are not part of the published source tree.
+
+## Project layout
+
+```
+patches/src/main/kotlin/app/morphe/patches/
+  kicktv/Target.kt                  KICK compatibility (package, version, green tile)
+  kicktv/settings/                  KICK SEYTTINGS base patch
+  kicktv/emotes/                    KICK EMOTES patch
+  kicktv/chatsize/                  KICK CHAT SIZE patch
+  kicktv/chattext/                  KICK CHAT TEXT SIZE patch
+  kicktv/chatexpand/                KICK EXPAND CHAT patch
+  twitch/Target.kt                  Twitch compatibility (package, version, purple tile)
+  twitch/settings/                  Twitch SEYTTINGS base patch
+  twitch/emotes/                    Twitch EMOTES patch
+  twitch/expandchat/                Twitch EXPAND CHAT patch
+extension/src/app/morphe/extension/
+  kicktv/base/                      KICK red themed dialog, bridge and injector
+  kicktv/emotes/                    KICK emote renderer and provider store
+  kicktv/chat/                      KICK chat size helpers
+  kicktv/chattext/                  KICK chat text size helpers
+  kicktv/chatexpand/                KICK footer helper
+  twitch/base/                      Twitch red themed dialog, bridge and injector
+  twitch/emotes/                    Twitch emote renderer and provider store
+  twitch/expandchat/                Twitch footer helper
+scripts/                            build and release scripts
+patches-list.json                   remote patch metadata (repository root)
+patches-bundle.json                 remote bundle manifest (repository root)
+patches-bundle.png                  source icon shown by Morphe Manager
+SeyMorphe-1.0.0.mpp                 published bundle (repository root)
+assets/                             README illustrations
+LICENSE                            GNU General Public License v3.0
+README.md                          this documentation
+```
+
+## Notes and limitations
+
+- The KICK patches declare compatibility with **1.9.0 / versionCode 208** only.
+  The Twitch patches declare **13.0.0.2 / versionCode 1100000018** only. Newer
+  app versions need fresh fingerprints before they can be patched.
+- A patched app cannot be updated from the store (signature mismatch). Patch the
+  newer APK and install it over the old one.
+- Runtime behaviour was verified on a real Android TV box (Android 11): KICK
+  chat size presets, 7TV/BTTV/FFZ global sets, channel 7TV emotes and Twitch
+  footer hiding were confirmed live.
+- 7TV channel emotes are resolved through the KICK user id. BTTV and FFZ only
+  provide global emote sets for KICK, so channel-specific BTTV/FFZ emotes are
+  not available there.
+- The Twitch helper survives client-side navigation because it is re-applied on
+  every page load and React re-render.
+- Emote sets are public data: no Twitch or KICK login is required for the emote
+  providers.
+
+## License
+
+Copyright (C) 2026 sey
+
+This project is free software: you can redistribute it and/or modify it under
+the terms of the **GNU General Public License** as published by the Free
+Software Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+This project is distributed in the hope that it will be useful, but **WITHOUT
+ANY WARRANTY**; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this project. If not, see <https://www.gnu.org/licenses/>.
+
+The full license text is in [LICENSE](LICENSE).
