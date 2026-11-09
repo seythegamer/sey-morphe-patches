@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 /**
@@ -60,6 +61,9 @@ public final class MorpheSettings {
         root.setPadding(pad, pad, pad, pad);
         root.setBackgroundColor(MorpheTheme.COLOR_BG);
 
+        // Dialog width, shared by the window and the height measurement below.
+        final int dialogWidth = MorpheTheme.dp(activity, 620);
+
         // Red accent bar gives the dialog its Morphe look.
         View accent = new View(activity);
         accent.setBackgroundColor(MorpheTheme.COLOR_ACCENT);
@@ -92,7 +96,17 @@ public final class MorpheSettings {
         LinearLayout sections = new LinearLayout(activity);
         sections.setOrientation(LinearLayout.VERTICAL);
         sections.setPadding(0, MorpheTheme.dp(activity, 12), 0, MorpheTheme.dp(activity, 6));
-        root.addView(sections);
+
+        // The tweak list grows with every feature patch, so it lives in a
+        // ScrollView: the header and the Close button stay put and the sections
+        // scroll when they do not fit the screen.
+        final ScrollView scroll = new ScrollView(activity);
+        scroll.setFillViewport(false);
+        scroll.setFocusable(false);
+        scroll.addView(sections, new ScrollView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+        root.addView(scroll, MorpheTheme.matchWidth());
 
         int installed = 0;
         for (String className : SECTION_CLASSES) {
@@ -127,6 +141,21 @@ public final class MorpheSettings {
         });
         root.addView(close, MorpheTheme.matchWidth());
 
+        // Measure the natural dialog height, then cap the scrolling area so the
+        // dialog always fits the screen and every section stays reachable.
+        root.measure(
+                View.MeasureSpec.makeMeasureSpec(dialogWidth, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        int naturalHeight = root.getMeasuredHeight();
+        int maxHeight = (int) (activity.getResources().getDisplayMetrics().heightPixels * 0.9f);
+        if (naturalHeight > maxHeight) {
+            ViewGroup.LayoutParams scrollParams = scroll.getLayoutParams();
+            scrollParams.height = Math.max(
+                    MorpheTheme.dp(activity, 120),
+                    scroll.getMeasuredHeight() - (naturalHeight - maxHeight));
+            scroll.setLayoutParams(scrollParams);
+        }
+
         dialog.setContentView(root);
         dialog.setCanceledOnTouchOutside(true);
         dialog.show();
@@ -134,7 +163,7 @@ public final class MorpheSettings {
         Window window = dialog.getWindow();
         if (window != null) {
             window.setBackgroundDrawable(new ColorDrawable(MorpheTheme.COLOR_BG));
-            window.setLayout(MorpheTheme.dp(activity, 620), ViewGroup.LayoutParams.WRAP_CONTENT);
+            window.setLayout(dialogWidth, ViewGroup.LayoutParams.WRAP_CONTENT);
         }
 
         // Start on the first feature control so a remote can toggle it right away.

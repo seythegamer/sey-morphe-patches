@@ -141,7 +141,8 @@ You can also import `SeyMorphe-1.2.0.mpp` manually as a local source.
    automatically.
 4. Patch and install the result.
 5. Open the app's Settings screen and press the red **SEYTTINGS** row to change
-   the tweak options.
+   the tweak options. The tweak list scrolls with the D-pad when it is longer
+   than the screen; the **Close** button stays pinned at the bottom.
 
 The patched APK is signed with a different key than the store build, so
 uninstall the original first. That removes the app's local data.

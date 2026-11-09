@@ -8,7 +8,7 @@
 # (Morphe Manager on Android), plus one extension DEX per feature.
 [CmdletBinding()]
 param(
-    [string]$Version = '1.2.0'
+    [string]$Version = '1.2.1'
 )
 
 $ErrorActionPreference = 'Stop'

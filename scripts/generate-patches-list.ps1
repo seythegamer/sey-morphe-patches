@@ -12,7 +12,7 @@
 # The version must match patches-bundle.json and the bundle manifest.
 [CmdletBinding()]
 param(
-    [string]$Version = '1.2.0'
+    [string]$Version = '1.2.1'
 )
 
 $ErrorActionPreference = 'Stop'
