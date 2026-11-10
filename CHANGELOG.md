@@ -4,6 +4,12 @@ All notable changes to the **Sey Morphe Patches** bundle are documented here.
 Morphe Manager reads this file from the repository root and shows the entries
 for every version newer than the installed bundle.
 
+## 1.2.3 (2026-11-10)
+
+### ✨ New Features
+
+* **KICK: Live Streaming - CHAT TEXT SIZE:** Chat messages now get Twitch-like breathing room: the message list uses a 10 dp gap instead of the stock 2 dp whenever the tweak is active, while the Off preset keeps the stock spacing.
+
 ## 1.2.2 (2026-11-09)
 
 ### ✨ New Features

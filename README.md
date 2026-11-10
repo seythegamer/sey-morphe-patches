@@ -24,7 +24,7 @@ for the feature patches of both apps.
 | **SEYTTINGS** | base | Turns the licensing row in the KICK settings screen into a red **SEYTTINGS** row that opens a native patched-tweaks dialog. Required by every KICK feature. |
 | **EMOTES** | feature | Shows 7TV, BTTV and FFZ emotes in the KICK chat. One shared toggle in SEYTTINGS enables all providers. |
 | **CHAT SIZE** | feature | Resizes the chat in the VIDEO/CHAT view: default (100%), 125%, 90%, 85% and 80%. The video and chat panel always meet at the same edge. |
-| **CHAT TEXT SIZE** | feature | Renders chat text larger, Twitch-style: 16 sp (default), 15 sp, 13 sp or stock 11 sp. Choose the size in SEYTTINGS. |
+| **CHAT TEXT SIZE** | feature | Renders chat text larger, Twitch-style: 16 sp (default), 15 sp, 13 sp or stock 11 sp, and widens the gap between messages (10 dp) whenever the tweak is active. Choose the size in SEYTTINGS. |
 | **EXPAND CHAT** | feature | Hides the **Join the Chat** footer in the VIDEO/CHAT view and lets the chat fill the freed space. Toggle in SEYTTINGS. |
 
 ### Twitch (Android TV)
@@ -136,7 +136,7 @@ fetches `CHANGELOG.md` from the repository root. The raw
 `patches-bundle.json` URL works for patching and updates, but it does not carry
 release notes.
 
-You can also import `SeyMorphe-1.2.2.mpp` manually as a local source.
+You can also import `SeyMorphe-1.2.3.mpp` manually as a local source.
 
 ## How to use
 
@@ -160,7 +160,7 @@ newest version in the file and shows every entry in between.
 
 Morphe parses the file with these rules, so keep the format:
 
-- one version heading per release, newest first: `## 1.2.2 (2026-11-09)` (the
+- one version heading per release, newest first: `## 1.2.3 (2026-11-10)` (the
   date is required),
 - section headings such as `### ✨ New Features`, `### 🐛 Bug Fixes`,
   `### ⚡ Performance` or `### 📝 Other`,
@@ -176,7 +176,7 @@ the feature, as in the examples.
 Add a new section at the top before publishing a version:
 
 ```markdown
-## 1.2.3 (2026-11-20)
+## 1.2.4 (2026-11-20)
 
 ### ✨ New Features
 
@@ -203,7 +203,7 @@ Build the extension DEX files and the combined bundle:
 powershell -ExecutionPolicy Bypass -File scripts\build-patch.ps1
 ```
 
-Output: `dist\SeyMorphe-1.2.2.mpp`.
+Output: `dist\SeyMorphe-1.2.3.mpp`.
 
 Optional APK builders use the same bundle and apply the patches to an original
 APKM:
@@ -299,7 +299,7 @@ patches-list.json                   remote patch metadata (repository root)
 patches-bundle.json                 remote bundle manifest (repository root)
 patches-bundle.png                  source icon shown by Morphe Manager
 CHANGELOG.md                        release notes read by Morphe Manager
-SeyMorphe-1.2.2.mpp                 published bundle (repository root)
+SeyMorphe-1.2.3.mpp                 published bundle (repository root)
 assets/                             README illustrations
 LICENSE                            GNU General Public License v3.0
 README.md                          this documentation
